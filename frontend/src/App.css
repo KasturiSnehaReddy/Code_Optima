@@ -1,0 +1,94 @@
+body{
+  background-color: #ffffff;
+  color: #333333;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.inputBox{
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  width: 100%;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.inputBox:focus-within{
+  border-color: #008080;
+  box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.1);
+}
+
+.inputBox input{
+  flex: 1;
+  padding: 15px 18px;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: #333333;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.inputBox input::placeholder{
+  color: #6c757d;
+}
+
+.btnNormal{
+  padding: 12px 24px;
+  width: 100%;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btnNormal:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.projects .project{
+  margin-top: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.projects .project:hover{
+  background-color: #f8f9fa;
+  border-color: #008080;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 128, 128, 0.15);
+}
+
+.css-b62m3t-container{
+  width: 100% !important;
+  margin-top: 10px;
+  border-radius: 12px;
+}
+
+.modalOverlay{
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modelBox{
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.typewriter{
+  background: linear-gradient(135deg, #008080, #20b2aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
