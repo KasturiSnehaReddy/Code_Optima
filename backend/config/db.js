@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const connectDB = async () => {
   try {
     // Use MongoDB Atlas connection string or local MongoDB
-    const mongoURI = process.env.MONGO_CONN;
+    const mongoURI = process.env.MONGODB_URI || process.env.MONGO_CONN;
     
     await mongoose.connect(mongoURI, {
       serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
