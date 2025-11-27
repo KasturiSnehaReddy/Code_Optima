@@ -353,7 +353,8 @@ exports.getUserInfo = async (req, res) => {
       success: true,
       user: {
         fullName: user.fullName,
-        email: user.email
+        email: user.email,
+        picture: user.picture || null
       }
     });
 
@@ -416,7 +417,7 @@ ${code}
 Keep it concise and educational. No extra details or lengthy explanations.`;
 
     // Get Gemini model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     // Create the full prompt with system context
     const fullPrompt = `You are a concise algorithm analysis expert. Provide clean, structured complexity analysis without excessive details. Focus on clarity and practical insights.
@@ -549,7 +550,7 @@ ${code}
 Keep the explanation concise and focus on the practical improvements.`;
 
     // Get Gemini model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     // Create the full prompt with system context
     const fullPrompt = `You are an expert software optimization specialist. Provide clean, efficient code solutions with clear explanations of improvements. Focus on practical optimizations.
@@ -733,6 +734,88 @@ exports.googleSignup = async (req, res) => {
     return res.status(500).json({
       success: false,
       msg: "Internal server error"
+    });
+  }
+};
+
+// Get user's competitive session history
+exports.getUserSessions = async (req, res) => {
+  try {
+    const token = req.body.token || req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        msg: "Token required"
+      });
+    }
+
+    const decoded = jwt.verify(token, secret);
+    const userId = decoded.userId;
+
+    const Room = require('../models/roomModel');
+    const Submission = require('../models/submissionModel');
+
+    console.log('Getting sessions for user:', userId);
+
+    // Find all rooms where user was a member (including running rooms with rankings)
+    const rooms = await Room.find({ 
+      members: userId,
+      $or: [
+        { status: 'finished' },
+        { status: 'running', 'rankings.0': { $exists: true } } // Running rooms with at least one ranking
+      ]
+    }).sort({ createdAt: -1 });
+
+    console.log('Found rooms:', rooms.length);
+
+    const sessions = [];
+
+    for (const room of rooms) {
+      // Find user's ranking in this room
+      const userRanking = room.rankings.find(
+        r => r.userId.toString() === userId.toString()
+      );
+
+      console.log('Room:', room.roomId, 'User ranking:', userRanking);
+
+      // Find user's best submission for this room
+      const submission = await Submission.findOne({
+        roomId: room.roomId,
+        userId: userId
+      }).sort({ testsPassed: -1, submittedAt: 1 });
+
+      console.log('Found submission:', submission ? 'Yes' : 'No');
+
+      if (submission || userRanking) {
+        sessions.push({
+          roomId: room.roomId,
+          questionTitle: room.question.title,
+          rank: userRanking?.rank || null,
+          passed: submission?.passed || false,
+          testsPassed: submission?.testsPassed || 0,
+          testsTotal: submission?.testsTotal || 0,
+          timeComplexity: submission?.timeComplexity || userRanking?.timeComplexity || 'N/A',
+          execTime: submission?.execTime || userRanking?.execTime || 0,
+          submittedAt: submission?.submittedAt || userRanking?.submittedAt || room.createdAt,
+          rankReason: userRanking?.rankReason || null,
+          badges: userRanking?.badges || [],
+        });
+      }
+    }
+
+    console.log('Returning sessions:', sessions.length);
+
+    return res.status(200).json({
+      success: true,
+      sessions,
+    });
+  } catch (error) {
+    console.error('Error getting user sessions:', error);
+    return res.status(500).json({ 
+      success: false,
+      error: 'Failed to get user sessions',
+      msg: error.message
     });
   }
 };

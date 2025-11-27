@@ -267,6 +267,29 @@ const Home = () => {
         </div>
 
         <div className="projects px-[100px] mt-8 pb-10">
+          <div className="mb-8 bg-teal-500 rounded-lg p-6 shadow-lg border-2 border-teal-600">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-bold mb-2 text-white">🏆 Competitive Coding Rooms</h3>
+                <p className="text-white">Challenge yourself and compete with others in real-time coding battles!</p>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => navigate('/create-room')}
+                  className="bg-white text-teal-600 font-bold px-6 py-3 rounded-lg hover:bg-teal-50 transition-all border-2 border-white shadow-md"
+                >
+                  Create Room
+                </button>
+                <button 
+                  onClick={() => navigate('/join-room')}
+                  className="bg-teal-700 text-white font-bold px-6 py-3 rounded-lg hover:bg-teal-800 transition-all shadow-md border-2 border-white"
+                >
+                  Join Room
+                </button>
+              </div>
+            </div>
+          </div>
+
           {projects && projects.length > 0 && (
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-700">Your Projects</h2>

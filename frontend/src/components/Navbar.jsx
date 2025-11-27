@@ -12,9 +12,9 @@ const Navbar = () => {
         </div>
 
         <div className="links flex items-center gap-[20px]">
-          <Link className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Home</Link>
-          <Link className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>About</Link>
-          <Link className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Contact</Link>
+          <Link to="/" className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Home</Link>
+          <Link to="/profile" className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Profile</Link>
+          <Link to="/contact" className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Contact</Link>
           <button onClick={()=>{
             localStorage.removeItem("token");
             localStorage.removeItem("isLoggedIn");

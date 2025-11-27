@@ -33,7 +33,9 @@ const Login = () => {
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("isLoggedIn", true);
         toast.success("Login successful!");
-        navigate("/");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
       } else {
         toast.error(data.msg);
       }
@@ -122,7 +124,10 @@ const Login = () => {
       if (data.success) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("isLoggedIn", true);
-        window.location.href = "/"
+        toast.success("Login successful!");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
       }
       else {
         toast.error(data.msg);

@@ -22,6 +22,41 @@ app.set('port', port);
 var server = http.createServer(app);
 
 /**
+ * Setup Socket.IO
+ */
+var { Server } = require('socket.io');
+var io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Store io instance in app for access in routes
+app.set('io', io);
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Join a room
+  socket.on('join-room', (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.id} joined room ${roomId}`);
+  });
+
+  // Leave a room
+  socket.on('leave-room', (roomId) => {
+    socket.leave(roomId);
+    console.log(`User ${socket.id} left room ${roomId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+/**
  * Listen on provided port, on all network interfaces.
  */
 

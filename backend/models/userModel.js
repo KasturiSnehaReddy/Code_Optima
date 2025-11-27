@@ -25,6 +25,13 @@ const userSchema = mongoose.Schema({
   picture: {
     type: String, // Google profile picture URL
   },
+  badges: [{
+    type: String,
+  }],
+  credits: {
+    type: Number,
+    default: 0,
+  },
   date: {
     type: Date,
     default: Date.now,

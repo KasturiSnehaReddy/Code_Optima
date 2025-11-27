@@ -13,6 +13,7 @@ let projectSchema = new mongoose.Schema({
   code: {
     type: String,
     required: true,
+    maxlength: 100000, // Limit to 100KB
   },
   createdBy: {
     type: String,
@@ -28,12 +29,17 @@ let projectSchema = new mongoose.Schema({
   },
   timeComplexityAnalysis: {
     type: String,
-    default: null
+    default: null,
+    maxlength: 5000, // Limit analysis to 5KB
   },
   optimizedSolution: {
     type: String,
-    default: null
+    default: null,
+    maxlength: 10000, // Limit optimized solution to 10KB
   }
 });
+
+// Index for faster queries
+projectSchema.index({ createdBy: 1, date: -1 });
 
 module.exports = mongoose.model("Project", projectSchema);
