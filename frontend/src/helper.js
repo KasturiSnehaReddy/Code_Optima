@@ -1,1 +1,1 @@
-export const api_base_url = "http://localhost:3001";
+export const api_base_url = "https://code-optima.onrender.com";
