@@ -119,12 +119,18 @@ const SignUp = () => {
       })
     }).then(res => res.json()).then(data => {
       if(data.success){
-        navigate("/login");
+        toast.success("Account created successfully! Please login.");
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
       }
       else{
-        toast.error(data.msg);
+        toast.error(data.msg || "Failed to create account. Please try again.");
       }
-    })
+    }).catch(error => {
+      console.error('Signup error:', error);
+      toast.error("An error occurred. Please try again.");
+    });
   };
 
   return (

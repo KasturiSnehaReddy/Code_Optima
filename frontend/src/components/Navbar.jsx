@@ -1,8 +1,16 @@
 import React from 'react'
 import logo from "../images/logos/logo2.png"
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("isLoggedIn");
+    navigate('/login');
+  };
+
   return (
     <>
       <div className="nav flex px-[100px] items-center justify-between h-[90px] bg-gray-800 border-b-2 border-gray-600 shadow-lg">
@@ -15,11 +23,7 @@ const Navbar = () => {
           <Link to="/" className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Home</Link>
           <Link to="/profile" className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Profile</Link>
           <Link to="/contact" className='text-gray-300 font-medium transition-all hover:text-white hover:font-semibold'>Contact</Link>
-          <button onClick={()=>{
-            localStorage.removeItem("token");
-            localStorage.removeItem("isLoggedIn");
-            window.location.reload();
-          }} className="btnNormal !w-fit bg-gray-600 text-white border border-gray-500 transition-all hover:bg-gray-700 hover:border-gray-400 px-[20px]">Logout</button>
+          <button onClick={handleLogout} className="btnNormal !w-fit bg-gray-600 text-white border border-gray-500 transition-all hover:bg-gray-700 hover:border-gray-400 px-[20px]">Logout</button>
         </div>
       </div>
     </>
