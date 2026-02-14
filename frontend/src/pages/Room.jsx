@@ -180,7 +180,14 @@ const Room = () => {
       
       if (data.success) {
         setRoom(data.room);
-        setCode(languageTemplates[language]);
+        
+        // Load saved code from localStorage or use template
+        const savedCode = localStorage.getItem(`room_${roomId}_code`);
+        if (savedCode) {
+          setCode(savedCode);
+        } else {
+          setCode(languageTemplates[language]);
+        }
         
         // Load saved rankings (persisted even if users leave)
         if (data.room.rankings && data.room.rankings.length > 0) {
@@ -581,7 +588,11 @@ const Room = () => {
               language={language === 'cpp' ? 'cpp' : language}
               theme="vs-dark"
               value={code}
-              onChange={(value) => setCode(value || '')}
+              onChange={(value) => {
+                setCode(value || '');
+                // Save to localStorage
+                localStorage.setItem(`room_${roomId}_code`, value || '');
+              }}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
