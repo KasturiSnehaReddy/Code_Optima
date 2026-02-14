@@ -230,13 +230,25 @@ class CodeExecutor {
     
     // C/C++ errors
     if (language === 'cpp' || language === 'c++' || language === 'c') {
-      // Extract compilation errors
+      // Extract compilation errors and clean them
       const errorLines = lines.filter(line => 
         line.includes('error:') || line.includes('warning:')
       );
       
       if (errorLines.length > 0) {
-        return errorLines.slice(0, 3).join('\n'); // Show first 3 errors
+        const cleanedErrors = errorLines.slice(0, 3).map(line => {
+          // Extract line number and error message
+          // Format: /path/file.c:5:10: error: message
+          const match = line.match(/:(\d+):(\d+):\s*(error|warning):\s*(.+)/);
+          if (match) {
+            const [, lineNum, , errorType, message] = match;
+            return `Line ${lineNum}: ${message}`;
+          }
+          // Fallback: just remove file paths
+          return line.replace(/\/opt\/render\/project\/src\/backend\/temp\/[^\s:]+:\s*/, '')
+                     .replace(/temp_\d+_[a-z0-9]+\.(c|cpp):\s*/, '');
+        });
+        return cleanedErrors.join('\n');
       }
       
       // Runtime errors
@@ -247,6 +259,27 @@ class CodeExecutor {
     
     // Java errors
     if (language === 'java') {
+      // Clean Java compilation errors
+      const cleanedErrors = [];
+      for (const line of lines) {
+        if (line.includes('error:')) {
+          // Format: Main.java:5: error: message
+          const match = line.match(/Main\.java:(\d+):\s*error:\s*(.+)/);
+          if (match) {
+            const [, lineNum, message] = match;
+            cleanedErrors.push(`Line ${lineNum}: ${message}`);
+          } else {
+            // Fallback: just show the error without file path
+            cleanedErrors.push(line.replace(/^.*Main\.java:\s*/, '').trim());
+          }
+        }
+      }
+      
+      if (cleanedErrors.length > 0) {
+        return cleanedErrors.slice(0, 3).join('\n');
+      }
+      
+      // Runtime errors
       if (errorMessage.includes('cannot find symbol')) {
         return 'Compilation Error: Variable or method not found';
       }
@@ -255,13 +288,6 @@ class CodeExecutor {
       }
       if (errorMessage.includes('ArrayIndexOutOfBoundsException')) {
         return 'Runtime Error: Array index out of bounds';
-      }
-      
-      // Extract main error line
-      for (const line of lines) {
-        if (line.includes('error:')) {
-          return line.trim();
-        }
       }
     }
     
