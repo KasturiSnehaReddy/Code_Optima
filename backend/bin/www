@@ -27,9 +27,11 @@ var server = http.createServer(app);
 var { Server } = require('socket.io');
 var io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+    origin: ['http://localhost:5173', 'https://code-optima-theta.vercel.app'],
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ['websocket', 'polling']
 });
 
 // Store io instance in app for access in routes
