@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: code-optima-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node ./bin/www
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+    # Install Java using Render's native packages
+    nativeEnvironments:
+      - java17

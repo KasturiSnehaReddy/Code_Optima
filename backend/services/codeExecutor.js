@@ -127,6 +127,13 @@ class CodeExecutor {
           break;
 
         case 'java':
+          // Check if Java is available
+          try {
+            await execAsync('javac -version', { timeout: 2000 });
+          } catch (error) {
+            throw new Error('Java compiler (javac) is not installed on the server. Please use Python, C++, C, or JavaScript instead.');
+          }
+          
           // Extract class name from code or use default
           const className = this.extractJavaClassName(code) || 'Main';
           // Java filename MUST match the public class name
