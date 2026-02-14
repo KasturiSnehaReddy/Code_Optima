@@ -234,6 +234,16 @@ const Room = () => {
   };
 
   const handleRun = async () => {
+    // Check if time is up
+    if (room?.status === 'running' && room?.endTime) {
+      const now = new Date().getTime();
+      const end = new Date(room.endTime).getTime();
+      if (now >= end) {
+        toast.error('⏰ Time is up! You can no longer run code. Please leave the session.');
+        return;
+      }
+    }
+
     if (!code.trim()) {
       toast.error('Please write some code first');
       return;
@@ -273,6 +283,16 @@ const Room = () => {
   };
 
   const handleSubmit = async () => {
+    // Check if time is up
+    if (room?.status === 'running' && room?.endTime) {
+      const now = new Date().getTime();
+      const end = new Date(room.endTime).getTime();
+      if (now >= end) {
+        toast.error('⏰ Time is up! You can no longer submit code. Please leave the session.');
+        return;
+      }
+    }
+
     if (!code.trim()) {
       toast.error('Please write some code first');
       return;
