@@ -10,7 +10,10 @@ const Room = () => {
   const navigate = useNavigate();
   const [room, setRoom] = useState(null);
   const [code, setCode] = useState('');
-  const [language, setLanguage] = useState('python');
+  const [language, setLanguage] = useState(() => {
+    // Load saved language from localStorage
+    return localStorage.getItem(`room_${roomId}_language`) || 'python';
+  });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [running, setRunning] = useState(false);
@@ -181,12 +184,16 @@ const Room = () => {
       if (data.success) {
         setRoom(data.room);
         
-        // Load saved code from localStorage or use template
-        const savedCode = localStorage.getItem(`room_${roomId}_code`);
+        // Load saved language
+        const savedLanguage = localStorage.getItem(`room_${roomId}_language`) || 'python';
+        setLanguage(savedLanguage);
+        
+        // Load saved code for this language from localStorage or use template
+        const savedCode = localStorage.getItem(`room_${roomId}_code_${savedLanguage}`);
         if (savedCode) {
           setCode(savedCode);
         } else {
-          setCode(languageTemplates[language]);
+          setCode(languageTemplates[savedLanguage]);
         }
         
         // Load saved rankings (persisted even if users leave)
@@ -552,8 +559,17 @@ const Room = () => {
               <select
                 value={language}
                 onChange={(e) => {
-                  setLanguage(e.target.value);
-                  setCode(languageTemplates[e.target.value]);
+                  const newLang = e.target.value;
+                  setLanguage(newLang);
+                  // Save language to localStorage
+                  localStorage.setItem(`room_${roomId}_language`, newLang);
+                  // Load saved code for this language or use template
+                  const savedCode = localStorage.getItem(`room_${roomId}_code_${newLang}`);
+                  if (savedCode) {
+                    setCode(savedCode);
+                  } else {
+                    setCode(languageTemplates[newLang]);
+                  }
                 }}
                 className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm"
                 disabled={room?.status !== 'running'}
@@ -590,8 +606,8 @@ const Room = () => {
               value={code}
               onChange={(value) => {
                 setCode(value || '');
-                // Save to localStorage
-                localStorage.setItem(`room_${roomId}_code`, value || '');
+                // Save to localStorage with language
+                localStorage.setItem(`room_${roomId}_code_${language}`, value || '');
               }}
               options={{
                 minimap: { enabled: false },
