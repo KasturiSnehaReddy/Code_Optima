@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api_base_url } from '../helper';
+import { api_base_url, handleAuthError } from '../helper';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 
@@ -10,11 +10,46 @@ const RoomSummary = () => {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   useEffect(() => {
-    fetchRoomDetails();
-    fetchCurrentUser();
-  }, [roomId]);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${api_base_url}/getUserInfo`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await response.json();
+        
+        if (response.status === 401 || !data.success) {
+          localStorage.clear();
+          navigate('/login');
+          return;
+        }
+        
+        setIsAuthChecking(false);
+      } catch (error) {
+        localStorage.clear();
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!isAuthChecking) {
+      fetchRoomDetails();
+      fetchCurrentUser();
+    }
+  }, [roomId, isAuthChecking]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -74,6 +109,14 @@ const RoomSummary = () => {
     if (rank === 3) return 'from-orange-600 to-orange-700';
     return 'from-blue-600 to-blue-700';
   };
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

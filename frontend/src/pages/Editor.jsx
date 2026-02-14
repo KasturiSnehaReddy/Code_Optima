@@ -1,19 +1,21 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import Editor2 from '@monaco-editor/react';
-import { useParams } from 'react-router-dom';
-import { api_base_url } from '../helper';
+import { useParams, useNavigate } from 'react-router-dom';
+import { api_base_url, handleAuthError } from '../helper';
 import { toast } from 'react-toastify';
 
 const Editor = () => {
   const [code, setCode] = useState(""); // State to hold the code
   const { id } = useParams(); // Extract project ID from URL params
+  const navigate = useNavigate();
   const [output, setOutput] = useState("");
   const [error, setError] = useState(false);
   const [data, setData] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [saveError, setSaveError] = useState(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const autosaveTimerRef = useRef(null);
   const initialLoadRef = useRef(true);
   
@@ -41,9 +43,43 @@ const Editor = () => {
     }
   };
 
+  // Check authentication first
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${api_base_url}/getUserInfo`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await response.json();
+        
+        if (response.status === 401 || !data.success) {
+          localStorage.clear();
+          navigate('/login');
+          return;
+        }
+        
+        setIsAuthChecking(false);
+      } catch (error) {
+        localStorage.clear();
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
   // Fetch project data on mount
   useEffect(() => {
-    fetch(`${api_base_url}/getProject`, {
+    if (!isAuthChecking) {
+      fetch(`${api_base_url}/getProject`, {
       mode: 'cors',
       method: 'POST',
       headers: {
@@ -310,6 +346,14 @@ const Editor = () => {
       console.error('Load optimized solution error:', error);
     }
   };
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <>
