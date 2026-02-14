@@ -80,35 +80,36 @@ const Editor = () => {
   useEffect(() => {
     if (!isAuthChecking) {
       fetch(`${api_base_url}/getProject`, {
-      mode: 'cors',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        token: localStorage.getItem('token'),
-        projectId: id,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          // Ensure proper line breaks are preserved
-          const codeWithLineBreaks = data.project.code || '';
-          console.log('Fetched code:', codeWithLineBreaks); // Debug log
-          setCode(codeWithLineBreaks); // Set the fetched code
-          setData(data.project);
-          // mark initial load complete so autosave doesn't trigger immediately
-          initialLoadRef.current = false;
-        } else {
-          toast.error(data.msg);
-        }
+        mode: 'cors',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: localStorage.getItem('token'),
+          projectId: id,
+        }),
       })
-      .catch((err) => {
-        console.error('Error fetching project:', err);
-        toast.error('Failed to load project.');
-      });
-  }, [id]);
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            // Ensure proper line breaks are preserved
+            const codeWithLineBreaks = data.project.code || '';
+            console.log('Fetched code:', codeWithLineBreaks); // Debug log
+            setCode(codeWithLineBreaks); // Set the fetched code
+            setData(data.project);
+            // mark initial load complete so autosave doesn't trigger immediately
+            initialLoadRef.current = false;
+          } else {
+            toast.error(data.msg);
+          }
+        })
+        .catch((err) => {
+          console.error('Error fetching project:', err);
+          toast.error('Failed to load project.');
+        });
+    }
+  }, [id, isAuthChecking]);
 
   // Save project function
   // internal save implementation; showToast controls whether to show toast (autosave uses false)
