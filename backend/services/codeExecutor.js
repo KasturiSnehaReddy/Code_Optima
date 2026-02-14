@@ -236,19 +236,19 @@ class CodeExecutor {
       );
       
       if (errorLines.length > 0) {
-        const cleanedErrors = errorLines.slice(0, 3).map(line => {
+        const cleanedErrors = errorLines.slice(0, 3).map((line, idx) => {
           // Extract line number and error message
           // Format: /path/file.c:5:10: error: message
           const match = line.match(/:(\d+):(\d+):\s*(error|warning):\s*(.+)/);
           if (match) {
             const [, lineNum, , errorType, message] = match;
-            return `Line ${lineNum}: ${message}`;
+            return `• Line ${lineNum}: ${message}`;
           }
           // Fallback: just remove file paths
-          return line.replace(/\/opt\/render\/project\/src\/backend\/temp\/[^\s:]+:\s*/, '')
+          return '• ' + line.replace(/\/opt\/render\/project\/src\/backend\/temp\/[^\s:]+:\s*/, '')
                      .replace(/temp_\d+_[a-z0-9]+\.(c|cpp):\s*/, '');
         });
-        return cleanedErrors.join('\n');
+        return cleanedErrors.join('\n\n');
       }
       
       // Runtime errors
@@ -267,16 +267,16 @@ class CodeExecutor {
           const match = line.match(/Main\.java:(\d+):\s*error:\s*(.+)/);
           if (match) {
             const [, lineNum, message] = match;
-            cleanedErrors.push(`Line ${lineNum}: ${message}`);
+            cleanedErrors.push(`• Line ${lineNum}: ${message}`);
           } else {
             // Fallback: just show the error without file path
-            cleanedErrors.push(line.replace(/^.*Main\.java:\s*/, '').trim());
+            cleanedErrors.push('• ' + line.replace(/^.*Main\.java:\s*/, '').trim());
           }
         }
       }
       
       if (cleanedErrors.length > 0) {
-        return cleanedErrors.slice(0, 3).join('\n');
+        return cleanedErrors.slice(0, 3).join('\n\n');
       }
       
       // Runtime errors
