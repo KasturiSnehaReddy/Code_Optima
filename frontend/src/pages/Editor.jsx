@@ -109,6 +109,7 @@ const Editor = () => {
           toast.error('Failed to load project.');
         });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isAuthChecking]);
 
   // Save project function

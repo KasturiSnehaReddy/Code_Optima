@@ -49,6 +49,7 @@ const Profile = () => {
     if (!isAuthChecking) {
       fetchUserProfile();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthChecking]);
 
   const fetchUserProfile = async () => {

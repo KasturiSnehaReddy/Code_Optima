@@ -49,6 +49,7 @@ const RoomSummary = () => {
       fetchRoomDetails();
       fetchCurrentUser();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, isAuthChecking]);
 
   const fetchCurrentUser = async () => {

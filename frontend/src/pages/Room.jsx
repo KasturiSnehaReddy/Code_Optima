@@ -70,27 +70,28 @@ const Room = () => {
     if (!isAuthChecking) {
       fetchRoomDetails();
       connectSocket();
+
+      // Prevent accidental page close
+      const handleBeforeUnload = (e) => {
+        if (room?.status === 'running') {
+          e.preventDefault();
+          e.returnValue = 'Are you sure you want to leave the room? Your progress will be lost.';
+          return e.returnValue;
+        }
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      return () => {
+        if (socketRef.current) {
+          socketRef.current.emit('leave-room', roomId);
+          socketRef.current.disconnect();
+        }
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
     }
-
-    // Prevent accidental page close
-    const handleBeforeUnload = (e) => {
-      if (room?.status === 'running') {
-        e.preventDefault();
-        e.returnValue = 'Are you sure you want to leave the room? Your progress will be lost.';
-        return e.returnValue;
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.emit('leave-room', roomId);
-        socketRef.current.disconnect();
-      }
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [roomId, room?.status]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthChecking]);
 
   useEffect(() => {
     if (room && room.status === 'running' && room.endTime) {

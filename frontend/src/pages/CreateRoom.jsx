@@ -48,6 +48,7 @@ const CreateRoom = () => {
     if (!isAuthChecking) {
       fetchQuestions();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthChecking]);
 
   const fetchQuestions = async () => {
