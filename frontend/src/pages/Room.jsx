@@ -422,14 +422,14 @@ const Room = () => {
           )}
           
           <div className="bg-gray-700 px-3 py-1.5 rounded relative group cursor-help">
-            <span className="text-gray-300 text-sm">{room?.members?.length || 0}/{room?.maxMembers || 10}</span>
+            <span className="text-gray-300 text-sm">👥 {room?.members?.length || 0}/{room?.maxMembers || 10}</span>
             {/* Tooltip on hover */}
             {room?.members && room.members.length > 0 && (
-              <div className="absolute hidden group-hover:block bottom-full mb-2 right-0 bg-gray-800 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg border border-gray-700 z-50">
-                <div className="font-semibold mb-1">Participants:</div>
+              <div className="absolute hidden group-hover:block bottom-full mb-2 right-0 bg-gray-900 text-white text-xs rounded py-2 px-3 shadow-xl border-2 border-blue-500" style={{zIndex: 9999, minWidth: '150px'}}>
+                <div className="font-semibold mb-2 text-blue-400 border-b border-gray-700 pb-1">Participants:</div>
                 {room.members.map((member, idx) => (
-                  <div key={idx} className="text-gray-300">
-                    {member.fullName || member.email}
+                  <div key={idx} className="text-gray-200 py-0.5">
+                    ✓ {typeof member === 'string' ? 'Loading...' : (member?.fullName || member?.email || 'Anonymous')}
                   </div>
                 ))}
               </div>
