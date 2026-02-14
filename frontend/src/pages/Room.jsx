@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api_base_url } from '../helper';
+import { api_base_url, handleAuthError } from '../helper';
 import { toast } from 'react-toastify';
 import Editor from '@monaco-editor/react';
 import io from 'socket.io-client';
@@ -30,9 +30,46 @@ const Room = () => {
     java: 'import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your solution here\n    }\n}',
   };
 
+  // Check authentication first
   useEffect(() => {
-    fetchRoomDetails();
-    connectSocket();
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${api_base_url}/getUserInfo`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        
+        const data = await response.json();
+        
+        if (response.status === 401 || !data.success) {
+          localStorage.clear();
+          navigate('/login');
+          return;
+        }
+        
+        setIsAuthChecking(false);
+      } catch (error) {
+        localStorage.clear();
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!isAuthChecking) {
+      fetchRoomDetails();
+      connectSocket();
+    }
 
     // Prevent accidental page close
     const handleBeforeUnload = (e) => {
@@ -130,6 +167,10 @@ const Room = () => {
       });
 
       const data = await response.json();
+      
+      // Handle auth errors
+      if (handleAuthError(response, data)) return;
+      
       if (data.success) {
         setRoom(data.room);
         setCode(languageTemplates[language]);
@@ -305,6 +346,14 @@ const Room = () => {
   const cancelExit = () => {
     setShowExitConfirm(false);
   };
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Checking authentication...</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

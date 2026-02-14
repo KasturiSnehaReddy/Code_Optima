@@ -2,7 +2,7 @@ import React, { useEffect, useState, version } from 'react';
 import Navbar from "../components/Navbar";
 import TypewriterText from "../components/TypewriterText";
 import Select from 'react-select';
-import { api_base_url } from '../helper';
+import { api_base_url, handleAuthError } from '../helper';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -10,6 +10,7 @@ const Home = () => {
   const [isCreateModelShow, setIsCreateModelShow] = useState(false);
   const [languageOptions, setLanguageOptions] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState(null); // State to store selected language
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   const [isEditModelShow, setIsEditModelShow] = useState(false);
 
@@ -93,6 +94,46 @@ const Home = () => {
   const [projects, setProjects] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
 
+  // Check authentication immediately on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await fetch(api_base_url + "/getUserInfo", {
+          mode: "cors",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ token })
+        });
+        
+        const data = await response.json();
+        
+        // If user not found or invalid token, redirect immediately
+        if (response.status === 401 || !data.success) {
+          localStorage.clear();
+          navigate('/login');
+          return;
+        }
+        
+        setIsAuthChecking(false);
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        localStorage.clear();
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
   const getUserInfo = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -112,6 +153,9 @@ const Home = () => {
       console.log("Response status:", response.status);
       const data = await response.json();
       console.log("Response data:", data);
+      
+      // Handle auth errors
+      if (handleAuthError(response, data)) return;
       
       if (data.success) {
         setUserInfo(data.user);
@@ -147,10 +191,12 @@ const Home = () => {
   };
 
   useEffect(() => {
-    getUserInfo();
-    getProjects();
-    getRunTimes();
-  }, []);
+    if (!isAuthChecking) {
+      getUserInfo();
+      getProjects();
+      getRunTimes();
+    }
+  }, [isAuthChecking]);
 
   const createProj = () => {
     fetch(api_base_url + "/createProj", {
@@ -247,6 +293,15 @@ const Home = () => {
       }
     })
   };
+
+  // Don't render anything until auth is checked
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 flex items-center justify-center">
+        <div className="animate-pulse text-gray-400 text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <>
