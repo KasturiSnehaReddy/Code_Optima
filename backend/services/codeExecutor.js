@@ -167,8 +167,110 @@ class CodeExecutor {
       };
     } catch (error) {
       await this.cleanup(filepath, language, filename);
-      throw new Error(error.message || 'Execution failed');
+      const simplifiedError = this.simplifyError(error.message || error.stderr || 'Execution failed', language);
+      throw new Error(simplifiedError);
     }
+  }
+
+  simplifyError(errorMessage, language) {
+    // Simplify error messages to be more user-friendly
+    const lines = errorMessage.split('\n');
+    
+    // Python errors
+    if (language === 'python') {
+      // Find the last line which usually contains the error type
+      const errorLine = lines[lines.length - 1] || lines[lines.length - 2];
+      
+      // Extract line number from traceback
+      const lineMatch = errorMessage.match(/line (\d+)/);
+      const lineNum = lineMatch ? ` (line ${lineMatch[1]})` : '';
+      
+      // Common Python errors
+      if (errorLine.includes('NameError')) {
+        const nameMatch = errorLine.match(/name '(.+?)' is not defined/);
+        return nameMatch ? `NameError: '${nameMatch[1]}' is not defined${lineNum}` : errorLine;
+      }
+      if (errorLine.includes('SyntaxError')) {
+        return `SyntaxError: Invalid syntax${lineNum}`;
+      }
+      if (errorLine.includes('IndentationError')) {
+        return `IndentationError: Check your indentation${lineNum}`;
+      }
+      if (errorLine.includes('TypeError')) {
+        return errorLine.replace(/^.*TypeError: /, 'TypeError: ');
+      }
+      if (errorLine.includes('ValueError')) {
+        return errorLine.replace(/^.*ValueError: /, 'ValueError: ');
+      }
+      if (errorLine.includes('IndexError')) {
+        return `IndexError: List index out of range${lineNum}`;
+      }
+      if (errorLine.includes('KeyError')) {
+        return errorLine.replace(/^.*KeyError: /, 'KeyError: ');
+      }
+      if (errorLine.includes('AttributeError')) {
+        return errorLine.replace(/^.*AttributeError: /, 'AttributeError: ');
+      }
+      if (errorLine.includes('ZeroDivisionError')) {
+        return `ZeroDivisionError: Division by zero${lineNum}`;
+      }
+      
+      return errorLine || 'Runtime error';
+    }
+    
+    // JavaScript errors
+    if (language === 'javascript' || language === 'nodejs') {
+      for (const line of lines) {
+        if (line.includes('ReferenceError') || line.includes('TypeError') || 
+            line.includes('SyntaxError') || line.includes('RangeError')) {
+          return line.trim();
+        }
+      }
+    }
+    
+    // C/C++ errors
+    if (language === 'cpp' || language === 'c++' || language === 'c') {
+      // Extract compilation errors
+      const errorLines = lines.filter(line => 
+        line.includes('error:') || line.includes('warning:')
+      );
+      
+      if (errorLines.length > 0) {
+        return errorLines.slice(0, 3).join('\n'); // Show first 3 errors
+      }
+      
+      // Runtime errors
+      if (errorMessage.includes('Segmentation fault')) {
+        return 'Runtime Error: Segmentation fault (possible array out of bounds or null pointer)';
+      }
+    }
+    
+    // Java errors
+    if (language === 'java') {
+      if (errorMessage.includes('cannot find symbol')) {
+        return 'Compilation Error: Variable or method not found';
+      }
+      if (errorMessage.includes('NullPointerException')) {
+        return 'Runtime Error: NullPointerException';
+      }
+      if (errorMessage.includes('ArrayIndexOutOfBoundsException')) {
+        return 'Runtime Error: Array index out of bounds';
+      }
+      
+      // Extract main error line
+      for (const line of lines) {
+        if (line.includes('error:')) {
+          return line.trim();
+        }
+      }
+    }
+    
+    // Default: return first meaningful line or the full message if short
+    if (errorMessage.length < 100) {
+      return errorMessage;
+    }
+    
+    return lines.find(line => line.trim().length > 0) || 'Execution error';
   }
 
   escapeInput(input) {
