@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api_base_url } from '../helper';
+import { api_base_url, handleAuthError } from '../helper';
 import Navbar from '../components/Navbar';
 import { toast } from 'react-toastify';
 
@@ -9,11 +9,46 @@ const CreateRoom = () => {
   const [selectedQuestion, setSelectedQuestion] = useState('');
   const [maxMembers, setMaxMembers] = useState(5);
   const [loading, setLoading] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchQuestions();
-  }, []);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${api_base_url}/getUserInfo`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await response.json();
+        
+        if (response.status === 401 || !data.success) {
+          localStorage.clear();
+          navigate('/login');
+          return;
+        }
+        
+        setIsAuthChecking(false);
+      } catch (error) {
+        localStorage.clear();
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!isAuthChecking) {
+      fetchQuestions();
+    }
+  }, [isAuthChecking]);
 
   const fetchQuestions = async () => {
     try {
@@ -61,6 +96,14 @@ const CreateRoom = () => {
       setLoading(false);
     }
   };
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 flex items-center justify-center">
+        <div className="animate-pulse text-gray-400 text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <>

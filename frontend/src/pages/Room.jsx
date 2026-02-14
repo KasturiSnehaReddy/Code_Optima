@@ -20,6 +20,7 @@ const Room = () => {
   const [timeLeft, setTimeLeft] = useState('1:00:00');
   const [isCreator, setIsCreator] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const socketRef = useRef(null);
 
   const languageTemplates = {
