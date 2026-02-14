@@ -9,6 +9,7 @@ router.get('/questions', roomController.getQuestions);
 // Protected routes (require authentication)
 router.post('/create', authMiddleware, roomController.createRoom);
 router.post('/join', authMiddleware, roomController.joinRoom);
+router.post('/leave', authMiddleware, roomController.leaveRoom);
 router.post('/start', authMiddleware, roomController.startRoom);
 router.post('/run', authMiddleware, roomController.runCode);
 router.post('/submit', authMiddleware, roomController.submitCode);

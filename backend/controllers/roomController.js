@@ -185,6 +185,45 @@ exports.joinRoom = async (req, res) => {
   }
 };
 
+// Leave a room
+exports.leaveRoom = async (req, res) => {
+  try {
+    const { roomId } = req.body;
+    const userId = req.user._id;
+
+    const room = await Room.findOne({ roomId });
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    // Check if user is in the room
+    if (!room.members.includes(userId)) {
+      return res.status(400).json({ error: 'You are not in this room' });
+    }
+
+    // Remove user from members
+    room.members = room.members.filter(memberId => memberId.toString() !== userId.toString());
+    await room.save();
+
+    // Get socket.io instance and notify room
+    const io = req.app.get('io');
+    if (io) {
+      io.to(roomId).emit('member:left', {
+        userId,
+        memberCount: room.members.length,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Left room successfully',
+    });
+  } catch (error) {
+    console.error('Error leaving room:', error);
+    res.status(500).json({ error: 'Failed to leave room' });
+  }
+};
+
 // Start the room
 exports.startRoom = async (req, res) => {
   try {
