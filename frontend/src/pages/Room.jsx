@@ -134,6 +134,11 @@ const Room = () => {
       fetchRoomDetails();
     });
 
+    socketRef.current.on('member:left', (data) => {
+      toast.info('A participant left the room');
+      fetchRoomDetails();
+    });
+
     socketRef.current.on('room:started', (data) => {
       toast.success('Room started! Time limit: 1 minute ⏱️');
       fetchRoomDetails();
@@ -338,11 +343,26 @@ const Room = () => {
     setShowExitConfirm(true);
   };
 
-  const confirmExit = () => {
-    if (socketRef.current) {
-      socketRef.current.emit('leave-room', roomId);
+  const confirmExit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${api_base_url}/rooms/leave`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ roomId }),
+      });
+
+      if (socketRef.current) {
+        socketRef.current.emit('leave-room', roomId);
+      }
+      navigate('/');
+    } catch (error) {
+      console.error('Error leaving room:', error);
+      navigate('/');
     }
-    navigate('/');
   };
 
   const cancelExit = () => {
@@ -401,8 +421,19 @@ const Room = () => {
             </div>
           )}
           
-          <div className="bg-gray-700 px-3 py-1.5 rounded">
+          <div className="bg-gray-700 px-3 py-1.5 rounded relative group cursor-help">
             <span className="text-gray-300 text-sm">{room?.members?.length || 0}/{room?.maxMembers || 10}</span>
+            {/* Tooltip on hover */}
+            {room?.members && room.members.length > 0 && (
+              <div className="absolute hidden group-hover:block bottom-full mb-2 right-0 bg-gray-800 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg border border-gray-700 z-50">
+                <div className="font-semibold mb-1">Participants:</div>
+                {room.members.map((member, idx) => (
+                  <div key={idx} className="text-gray-300">
+                    {member.fullName || member.email}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {room?.status === 'open' && isCreator && (
@@ -536,7 +567,18 @@ const Room = () => {
                 <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 text-center">
                   <p className="text-white text-lg mb-1">⏳ Waiting for participants...</p>
                   <p className="text-gray-400 text-sm">Editor unlocks when room is full</p>
-                  <p className="text-blue-400 mt-2 font-bold text-2xl">{room.members.length}/{room.maxMembers}</p>
+                  <div className="mt-3">
+                    <p className="text-blue-400 font-bold text-2xl">{room.members.length}/{room.maxMembers}</p>
+                    {room.members && room.members.length > 0 && (
+                      <div className="mt-2 text-gray-400 text-sm">
+                        {room.members.map((member, idx) => (
+                          <div key={idx}>
+                            ✓ {member.fullName || member.email}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
