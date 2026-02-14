@@ -83,7 +83,7 @@ const Room = () => {
   }, [room]);
 
   const connectSocket = () => {
-    socketRef.current = io('http://localhost:3001');
+    socketRef.current = io(api_base_url);
     
     socketRef.current.on('connect', () => {
       console.log('Socket connected');
